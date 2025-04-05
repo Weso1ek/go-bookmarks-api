@@ -5,6 +5,7 @@ import (
 	"bookmark-api/httpcontroller"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -12,14 +13,13 @@ import (
 )
 
 func main() {
+	errEnv := godotenv.Load()
+	if errEnv != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	config := context.GetConfig()
-
-	fmt.Println("===")
-	fmt.Println(config.DBUser)
-	fmt.Println(config.DBPassword)
-	fmt.Println(config.DBHost)
-	fmt.Println("===")
-
+	
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName)
 	_, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
@@ -28,6 +28,7 @@ func main() {
 		log.Fatalf("Unable to connect to db: %s \n", err)
 	}
 
+	fmt.Println("Connected to db")
 	log.Println("Server start")
 
 	categoriesController := httpcontroller.NewCategoriesController()
