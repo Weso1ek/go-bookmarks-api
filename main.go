@@ -21,7 +21,7 @@ func main() {
 	config := context.GetConfig()
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName)
-	_, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
@@ -31,10 +31,11 @@ func main() {
 	fmt.Println("Connected to db")
 	log.Println("Server start")
 
-	categoriesController := httpcontroller.NewCategoriesController()
+	categoriesController := httpcontroller.NewCategoriesController(db)
 
 	router := gin.Default()
 	router.GET("/categories", categoriesController.GetCategories)
+	router.POST("/categories", categoriesController.PostCategories)
 
 	router.Run(":8080")
 }

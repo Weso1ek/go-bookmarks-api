@@ -1,7 +1,10 @@
 package httpcontroller
 
 import (
+	"bookmark-api/dto"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -18,12 +21,38 @@ var albums = []album{
 	{ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
 }
 
-type CategoriesController struct{}
+type CategoriesController struct {
+	db *gorm.DB
+}
 
-func NewCategoriesController() *CategoriesController {
-	return &CategoriesController{}
+func NewCategoriesController(db *gorm.DB) *CategoriesController {
+	return &CategoriesController{
+		db: db,
+	}
 }
 
 func (cc CategoriesController) GetCategories(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, albums)
+}
+
+func (cc CategoriesController) PostCategories(c *gin.Context) {
+	var newCategory dto.Category
+
+	if err := c.ShouldBindJSON(&newCategory); err != nil {
+
+		fmt.Println("====")
+		fmt.Println(err)
+		fmt.Println("====")
+
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	errSave := cc.db.Save(&newCategory).Error
+
+	if errSave != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": errSave.Error()})
+	}
+
+	fmt.Println(newCategory)
+
 }
